@@ -1,5 +1,7 @@
+#include <SFML/Window/Event.hpp>
 #include <iostream>
 #include <fftw3.h>
+#include <optional>
 #include <pthread.h>
 #include <math.h>
 #include <time.h>
@@ -33,8 +35,8 @@ Window TransparentWindow () {
   attr.override_redirect = true;
   wnd = XCreateWindow(
     display, DefaultRootWindow(display),
-    (sf::VideoMode::getDesktopMode().width / 2) - (WINDOW_WIDTH / 2),
-    sf::VideoMode::getDesktopMode().height - (MAX_HEIGHT * 2),
+    (sf::VideoMode::getDesktopMode().size.x / 2) - (WINDOW_WIDTH / 2),
+    sf::VideoMode::getDesktopMode().size.y - (MAX_HEIGHT * 2),
     WINDOW_WIDTH,
     MAX_HEIGHT * 2,
     0,
@@ -49,8 +51,8 @@ Window TransparentWindow () {
 
   XSizeHints sizehints;
   sizehints.flags = PPosition | PSize;
-  sizehints.x = (sf::VideoMode::getDesktopMode().width / 2) - (WINDOW_WIDTH / 2);
-  sizehints.y = sf::VideoMode::getDesktopMode().height - (MAX_HEIGHT * 2);
+  sizehints.x = (sf::VideoMode::getDesktopMode().size.x / 2) - (WINDOW_WIDTH / 2);
+  sizehints.y = sf::VideoMode::getDesktopMode().size.y - (MAX_HEIGHT * 2);
   sizehints.width = WINDOW_WIDTH;
   sizehints.height = MAX_HEIGHT * 2;
   XSetWMNormalHints(display, wnd, &sizehints);
@@ -124,10 +126,14 @@ int main () {
   // Main Loop
   while (window.isOpen()) {
     // Handle Events
-    sf::Event event;
-    while (window.pollEvent(event)) {
-      if (event.type == sf::Event::Closed)
-      window.close();
+    
+    while (window.isOpen()) {
+      // Handle Events
+      while (const std::optional event = window.pollEvent()) {
+        if (event->is<sf::Event::Closed>()) {
+          window.close();
+        }
+      }  
     }
 
     // Copy Audio Data
